@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimalist E-commerce Concept</title>
+    <!-- Tailwind CSS via CDN --><script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Sarabun --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Define custom styles or extend Tailwind */
+        body {
+            font-family: 'Inter', 'Sarabun', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            scroll-behavior: smooth; /* Added for smooth anchor scrolling */
+        }
+        /* .nav-link was removed from here because @apply doesn't work with CDN */
+        .brand-text {
+            @apply text-2xl font-bold text-gray-800 tracking-tighter;
+        }
+        .product-card {
+            @apply bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1;
+        }
+        /* Styles for the Cart Sidebar */
+        #cart-sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+        #cart-overlay {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .cart-item-enter {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+        .cart-item-enter-active {
+            opacity: 1;
+            transform: translateX(0);
+            transition: opacity 300ms, transform 300ms;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header --><header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 border-b border-gray-200">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <!-- Brand Logo --><a href="#" onclick="showPage('main', false); smoothScrollTo('home', 1000); return false;" class="brand-text">MINIM.</a>
+
+                <!-- Desktop Navigation (ADAPTED FOR SINGLE PAGE) --><nav class="hidden md:flex items-center space-x-4 lg:space-x-6">
+                    <a onclick="showPage('main', false); smoothScrollTo('home', 1000);" class="text-gray-600 hover:text-black transition-all duration-200 cursor-pointer px-3 py-1 rounded-md hover:bg-gray-100">Home</a>
+                    <a onclick="showPage('main', false); smoothScrollTo('shop', 1000);" class="text-gray-600 hover:text-black transition-all duration-200 cursor-pointer px-3 py-1 rounded-md hover:bg-gray-100">Shop</a>
+                    <a onclick="showPage('main', false); smoothScrollTo('features', 1000);" class="text-gray-600 hover:text-black transition-all duration-200 cursor-pointer px-3 py-1 rounded-md hover:bg-gray-100">Features</a>
+                    <a onclick="showPage('main', false); smoothScrollTo('testimonial', 1000);" class="text-gray-600 hover:text-black transition-all duration-200 cursor-pointer px-3 py-1 rounded-md hover:bg-gray-100">Testimonial</a>
+                    <a onclick="showPage('main', false); smoothScrollTo('team', 1000);" class="text-gray-600 hover:text-black transition-all duration-200 cursor-pointer px-3 py-1 rounded-md hover:bg-gray-100">Team Members</a>
+                    <a onclick="showPage('main', false); smoothScrollTo('new-arrivals-section', 1000);" class="text-gray-600 hover:text-black transition-all duration-200 cursor-pointer px-3 py-1 rounded-md hover:bg-gray-100">New Arrivals</a>
+                    <a onclick="showPage('main', false); smoothScrollTo('about-store', 1000);" class="text-gray-600 hover:text-black transition-all duration-200 cursor-pointer px-3 py-1 rounded-md hover:bg-gray-100">About Store</a>
+                    <a onclick="showPage('main', false); smoothScrollTo('social-links', 1000);" class="text-gray-600 hover:text-black transition-all duration-200 cursor-pointer px-3 py-1 rounded-md hover:bg-gray-100">Contact</a>
+                </nav>
+
+                <!-- Icons (Original - Unchanged) --><div class="flex items-center space-x-4">
+                    <button onclick="showPage('search')" class="text-gray-600 hover:text-black transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </button>
+                    <button class="relative text-gray-600 hover:text-black transition-colors" onclick="toggleCart()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center transition-transform transform scale-0">0</span>
+                    </button>
+                    <button onclick="showPage('history')" class="text-gray-600 hover:text-black transition-colors">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                         </svg>
+                    </button>
+                    
+                    <!-- (NEW) Mobile Menu Button (Hamburger) -->
+                    <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden text-gray-600 hover:text-black transition-colors">
+                        <!-- Hamburger Icon -->
+                        <svg id="hamburger-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                        <!-- Close Icon (X) -->
+                        <svg id="close-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- (NEW) Mobile Menu -->
+        <!-- Starts with max-h-0, overflow-hidden. JS will toggle to max-h-screen -->
+        <div id="mobile-menu" class="md:hidden bg-white border-t border-gray-200 overflow-hidden max-h-0 transition-all duration-300 ease-in-out">
+            <nav class="flex flex-col space-y-1 p-4">
+                <a onclick="showPage('main', false); smoothScrollTo('home', 1000); toggleMobileMenu();" class="text-gray-700 hover:text-black transition-all duration-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 font-medium">Home</a>
+                <a onclick="showPage('main', false); smoothScrollTo('shop', 1000); toggleMobileMenu();" class="text-gray-700 hover:text-black transition-all duration-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 font-medium">Shop</a>
+                <a onclick="showPage('main', false); smoothScrollTo('features', 1000); toggleMobileMenu();" class="text-gray-700 hover:text-black transition-all duration-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 font-medium">Features</a>
+                <a onclick="showPage('main', false); smoothScrollTo('testimonial', 1000); toggleMobileMenu();" class="text-gray-700 hover:text-black transition-all duration-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 font-medium">Testimonial</a>
+                <a onclick="showPage('main', false); smoothScrollTo('team', 1000); toggleMobileMenu();" class="text-gray-700 hover:text-black transition-all duration-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 font-medium">Team Members</a>
+                <a onclick="showPage('main', false); smoothScrollTo('new-arrivals-section', 1000); toggleMobileMenu();" class="text-gray-700 hover:text-black transition-all duration-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 font-medium">New Arrivals</a>
+                <a onclick="showPage('main', false); smoothScrollTo('about-store', 1000); toggleMobileMenu();" class="text-gray-700 hover:text-black transition-all duration-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 font-medium">About Store</a>
+                <a onclick="showPage('main', false); smoothScrollTo('social-links', 1000); toggleMobileMenu();" class="text-gray-700 hover:text-black transition-all duration-200 cursor-pointer px-3 py-2 rounded-md hover:bg-gray-100 font-medium">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content (Home/Shop Page) --><main id="page-main" class="container mx-auto px-4 py-8 md:py-12">
+        <!-- Hero Section (Original "Header (Title)") --><section id="home" class="bg-gray-100 rounded-2xl p-8 md:p-16 flex items-center mb-12">
+            <div class="max-w-xl">
+                <h1 class="text-4xl md:text-5xl font-bold text-gray-800 leading-tight">Effortless Style for Modern Living</h1>
+                <p class="mt-4 text-gray-600 text-lg">Discover our curated collection of high-quality goods, designed to simplify and elevate your everyday life.</p>
+                <button class="mt-8 bg-black text-white font-semibold py-3 px-8 rounded-lg hover:bg-gray-800 transition-colors duration-300" onclick="smoothScrollTo('shop', 1000);">
+                    Shop Collection
+                </button>
+            </div>
+        </section>
+
+        <!-- Featured Products (Original) --><section id="shop" class="mb-12">
+            <div class="flex justify-between items-center mb-6">
+                 <h2 class="text-2xl md:text-3xl font-bold text-gray-800">Featured Products</h2>
+                 <a href="#" class="text-sm font-medium text-gray-600 hover:text-black">View All &rarr;</a>
+            </div>
+
+            <!-- Product Grid --><div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                <!-- Product cards will be injected here by JavaScript --></div>
+        </section>
+
+        <!-- (NEW) Features Section (Required) --><section id="features" class="py-12 md:py-16 bg-white rounded-2xl p-8 md:p-12 mb-12">
+            <h2 class="text-3xl font-bold text-gray-800 text-center mb-10">Features</h2>
+            <p class="text-center text-gray-600 max-w-2xl mx-auto mb-12">คุณสมบัติเด่นของแอปพลิเคชัน Startup ของเรา ที่จะช่วยให้ธุรกิจของคุณเติบโต</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Feature 1 --><div class="text-center p-6 bg-gray-50 rounded-xl">
+                    <div class="flex items-center justify-center h-12 w-12 bg-black text-white rounded-full mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">รวดเร็วและทันสมัย</h3>
+                    <p class="text-gray-600">ออกแบบด้วยเทคโนโลยีล่าสุดเพื่อประสบการณ์การใช้งานที่ลื่นไหลและตอบสนองทันที</p>
+                </div>
+                <!-- Feature 2 --><div class="text-center p-6 bg-gray-50 rounded-xl">
+                    <div class="flex items-center justify-center h-12 w-12 bg-black text-white rounded-full mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">ปลอดภัยและเชื่อถือได้</h3>
+                    <p class="text-gray-600">ระบบรักษาความปลอดภัยมาตรฐานสูง ปกป้องข้อมูลของคุณตลอด 24 ชั่วโมง</p>
+                </div>
+                <!-- Feature 3 --><div class="text-center p-6 bg-gray-50 rounded-xl">
+                    <div class="flex items-center justify-center h-12 w-12 bg-black text-white rounded-full mx-auto mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0h6m-6 0H9m0 0h.01M13 19v-6a2 2 0 00-2-2h-2a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">ใช้งานง่าย</h3>
+                    <p class="text-gray-600">อินเทอร์เฟซที่สะอาดตาและเข้าใจง่าย เริ่มต้นใช้งานได้ทันทีโดยไม่ต้องเรียนรู้</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- (NEW) Testimonial Section (Optional) --><section id="testimonial" class="py-12 md:py-16">
+            <h2 class="text-3xl font-bold text-gray-800 text-center mb-10">Testimonials</h2>
+            <p class="text-center text-gray-600 max-w-2xl mx-auto mb-12">ฟังเสียงจากผู้ใช้งานจริงของเรา</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Testimonial 1 --><div class="bg-white p-6 rounded-xl shadow-sm">
+                    <p class="text-gray-700 italic">"สุดยอดแอปพลิเคชัน! มันเปลี่ยนวิธีการทำงานของเราไปเลย ใช้งานง่ายและทรงพลังมากครับ"</p>
+                    <p class="mt-4 font-semibold text-gray-800">สมชาย ใจดี</p>
+                    <p class="text-sm text-gray-500">CEO, ABC Company</p>
+                </div>
+                <!-- Testimonial 2 --><div class="bg-white p-6 rounded-xl shadow-sm">
+                    <p class="text-gray-700 italic">"ทีมซัพพอร์ตยอดเยี่ยมมาก ช่วยแก้ปัญหาได้รวดเร็ว ฟีเจอร์ก็ตอบโจทย์ธุรกิจขนาดเล็กอย่างเราที่สุด"</p>
+                    <p class="mt-4 font-semibold text-gray-800">สมหญิง รักจริง</p>
+                    <p class="text-sm text-gray-500">Founder, XYZ Startup</p>
+                </div>
+                <!-- Testimonial 3 --><div class="bg-white p-6 rounded-xl shadow-sm">
+                    <p class="text-gray-700 italic">"ตั้งแต่เปลี่ยนมาใช้แอปนี้ ยอดขายของเราเพิ่มขึ้น 30% ไม่น่าเชื่อว่าจะสะดวกขนาดนี้"</p>
+                    <p class="mt-4 font-semibold text-gray-800">วิชัย มีลาภ</p>
+                    <p class="text-sm text-gray-500">Marketing Manager</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- (MOVED) Team Members Section --><section id="team" class="py-12 md:py-16 bg-white rounded-2xl p-8 md:p-12 mb-12">
+            <div class="max-w-4xl mx-auto">
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-800 text-center mb-6">เกี่ยวกับทีมของเรา</h1>
+                <p class="text-lg text-gray-600 text-center mb-12">พวกเราคือกลุ่มคนที่หลงใหลในการสร้างสรรค์เทคโนโลยีเพื่อแก้ปัญหาและผลักดันธุรกิจให้ก้าวไปข้างหน้า ภารกิจของเราคือการสร้างเครื่องมือที่ยอดเยี่ยมและใช้งานง่ายที่สุดสำหรับคุณ</p>
+
+                <!-- Responsive Team Grid --><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Member 1 --><div class="bg-white rounded-xl shadow-sm overflow-hidden text-center border">
+                        <img src="https://media.discordapp.net/attachments/1436556991723077696/1436590852154589328/image.png?ex=691028fd&is=690ed77d&hm=0cb319481cbd962cd568640700c03abb45a0ad3781ceab8c6deab73fd0a11e75&=&format=webp&quality=lossless&width=448&height=536">
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold text-gray-800">กษิดิ์เดช กลิ่นโพธิ์กลับ</h3>
+                            <p class="text-gray-500 mb-3">Backend Developer</p>
+                            <a href="https://github.com/KasidechGlinpoglub" target="_blank" class="text-sm font-medium text-black hover:underline">ดูโปรไฟล์ GitHub</a>
+                        </div>
+                    </div>
+                    <!-- Member 2 --><div class="bg-white rounded-xl shadow-sm overflow-hidden text-center border">
+                        <img src="https://media.discordapp.net/attachments/1436556991723077696/1436557060006346903/6752300763.jpg?ex=69100985&is=690eb805&hm=b91b502377af51d86ab89eebe1119d24c77e4adc55eb615c685d65865935a9b0&=&format=webp&width=669&height=800" alt="Team Member 2" class="w-full h-auto object-cover">
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold text-gray-800">ศรัณญ์ บุญวันต์</h3>
+                            <p class="text-gray-500 mb-3">UX/UI Designer</p>
+                            <a href="https://github.com/Chokunn" target="_blank" class="text-sm font-medium text-black hover:underline">ดูโปรไฟล์ GitHub</a>
+                        </div>
+                    </div>
+                    <!-- Member 3 --><div class="bg-white rounded-xl shadow-sm overflow-hidden text-center border">
+                        <img src="https://media.discordapp.net/attachments/1436556991723077696/1436557056936120320/6752301379.jpg?ex=69100984&is=690eb804&hm=4f18beeb70d5ca84ae8e4f6d7b6b8c6cd05139b12a150f16b3979eddfe90c87d&=&format=webp&width=664&height=800" alt="Team Member 3" class="w-full h-auto object-cover">
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold text-gray-800">รัชตะ สาภูเมือง</h3>
+                            <p class="text-gray-500 mb-3">Backend Developer</p>
+                            <a href="https://github.com/martsai" target="_blank" class="text-sm font-medium text-black hover:underline">ดูโปรไฟล์ GitHub</a>
+                        </div>
+                    </div>
+                    <!-- Member 4 (Added) --><div class="bg-white rounded-xl shadow-sm overflow-hidden text-center border">
+                        <img src="https://media.discordapp.net/attachments/1436556991723077696/1436557058773225523/6752300879.jpg?ex=69100984&is=690eb804&hm=5ac7933d56869d365cdf5b971893242b89d31cf2f89da7993fd7dd7664bfa77a&=&format=webp&width=250&height=300" alt="Team Member 4" class="w-full h-auto object-cover">
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold text-gray-800">จิรภิญโญ เชียงกา</h3>
+                            <p class="text-gray-500 mb-3">Backend Developer</p>
+                            <a href="https://github.com/Chiraphinyo001" target="_blank" class="text-sm font-medium text-black hover:underline">ดูโปรไฟล์ GitHub</a>
+                        </div>
+                    </div>
+                    <!-- Member 5 (Added) --><div class="bg-white rounded-xl shadow-sm overflow-hidden text-center border">
+                        <img src="https://media.discordapp.net/attachments/1436556991723077696/1436557057468661810/6752300925.png?ex=69100984&is=690eb804&hm=75007475684a415edc5c0a39da885391d5f39ccadaf6e000b25fc524f4161b30&=&format=webp&quality=lossless&width=203&height=245" alt="Team Member 5" class="w-full h-auto object-cover">
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold text-gray-800">อนุวัฒน์ ลู่สัจวัฒนา</h3>
+                            <p class="text-gray-500 mb-3">Ux/Ui Designer</p>
+                            <a href="https://github.com/looo1987" target="_blank" class="text-sm font-medium text-black hover:underline">ดูโปรไฟล์ GitHub</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- (MOVED) New Arrivals Page --><section id="new-arrivals-section" class="py-12 md:py-16">
+            <h1 class="text-3xl font-bold text-gray-800 mb-8 text-center">New Arrivals</h1>
+            <p class="text-gray-600 mb-6 text-center max-w-lg mx-auto">สินค้าคอลเลกชันใหม่ล่าสุดที่คัดสรรมาเพื่อคุณ</p>
+            <div id="new-arrivals-product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                <!-- New arrival product cards will be injected here by JavaScript --></div>
+        </section>
+
+        <!-- (MOVED) About Page --><section id="about-store" class="py-12 md:py-16 bg-gray-100 rounded-2xl mb-12">
+            <div class="bg-white p-8 md:p-12 rounded-xl shadow-sm max-w-3xl mx-auto">
+                <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">About MINIM.</h1>
+                <div class="prose prose-lg text-gray-700 max-w-none">
+                    <p>ยินดีต้อนรับสู่ MINIM. ที่ที่เราเชื่อว่าความเรียบง่ายคือหัวใจของชีวิตที่มีคุณภาพ</p>
+                    <p>เราเริ่มต้นจากความตั้งใจที่จะรวบรวมสินค้าที่ออกแบบมาอย่างดี ใช้งานได้จริง และมีความสวยงามในตัวเอง เราเชื่อในการ "น้อยแต่มาก" (Less is More) สินค้าทุกชิ้นในร้านของเราผ่านการคัดเลือกมาอย่างพิถีพิถัน เพื่อให้แน่ใจว่ามันจะช่วยยกระดับการใช้ชีวิตประจำวันของคุณ ไม่ใช่เพิ่มความยุ่งเหยิง</p>
+                    <p>ภารกิจของเราคือการมอบประสบการณ์การช้อปปิ้งที่ง่ายดาย ไร้รอยต่อ และสร้างแรงบันดาลใจ ให้คุณได้พบกับสินค้าที่จะอยู่กับคุณไปอีกนาน</p>
+                    <p class="mt-4">ขอบคุณที่ร่วมเป็นส่วนหนึ่งของการเดินทางของเรา</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- (DELETED) Team Members Page (Content moved to main) --><!-- <div id="page-team" class="hidden ...">...</div> --><!-- (DELETED) New Arrivals Page (Content moved to main) --><!-- <div id="page-new-arrivals" class="hidden ...">...</div> --><!-- (DELETED) About Page (Content moved to main) --><!-- <div id="page-about" class="hidden ...">...</div> --><!-- (REMAINING) Search Page (Hidden) --><div id="page-search" class="hidden container mx-auto px-4 py-8 md:py-12">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Search Products</h1>
+        <div class="mb-8">
+            <input type="search" id="search-input" placeholder="Search for products, e.g., 'Gundam'" class="w-full p-4 border border-gray-300 rounded-lg shadow-sm focus:ring-black focus:border-black text-lg">
+        </div>
+        
+        <!-- Search Results Grid --><div id="search-results-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <!-- Search results will be injected here --></div>
+        <p id="no-search-results" class="hidden text-gray-600 text-center py-12">No products found matching your search.</p>
+    </div>
+
+    <!-- (REMAINING) Checkout Page (Hidden) --><div id="page-checkout" class="hidden container mx-auto px-4 py-8 md:py-12">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Checkout</h1>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <!-- Shipping Details Form --><form class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm">
+                <h2 class="text-xl font-semibold mb-4">Shipping Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="firstName" class="block text-sm font-medium text-gray-700">First Name</label>
+                        <input type="text" id="firstName" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black">
+                    </div>
+                    <div>
+                        <label for="lastName" class="block text-sm font-medium text-gray-700">Last Name</label>
+                        <input type="text" id="lastName" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
+                        <input type="text" id="address" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black">
+                    </div>
+                    <div>
+                        <label for="city" class="block text-sm font-medium text-gray-700">City</label>
+                        <input type="text" id="city" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black">
+                    </div>
+                    <div>
+                        <label for="zip" class="block text-sm font-medium text-gray-700">ZIP / Postal Code</label>
+                        <input type="text" id="zip" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-black focus:border-black">
+                    </div>
+                </div>
+            </form>
+            <!-- Order Summary --><div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm h-fit">
+                <h2 class="text-xl font-semibold mb-4">Your Order</h2>
+                <div id="checkout-summary-items" class="space-y-3">
+                    <!-- Items will be injected here --></div>
+                <div class="border-t mt-4 pt-4 space-y-2">
+                     <div class="flex justify-between font-semibold">
+                         <span>Subtotal</span>
+                         <span id="checkout-subtotal">0 THB</span>
+                     </div>
+                     <div class="flex justify-between text-gray-500 mt-1">
+                         <span>Shipping</span>
+                         <span>Free</span>
+                     </div>
+                     <div class="flex justify-between font-bold text-lg mt-4 border-t pt-4">
+                         <span>Total</span>
+                         <span id="checkout-total">0 THB</span>
+                     </div>
+                </div>
+                <button class="w-full mt-6 bg-black text-white font-semibold py-3 rounded-lg hover:bg-gray-800 transition-colors duration-300">Place Order</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- (REMAINING) Order History Page (Hidden) --><div id="page-history" class="hidden container mx-auto px-4 py-8 md:py-12">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Recently Viewed</h1>
+        <div>
+            <div id="history-items-container" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                <!-- Recently viewed items will be injected here --></div>
+            <p id="no-history-message" class="hidden text-gray-600 text-center py-12">คุณยังไม่ได้ดูสินค้าใดๆ</p>
+        </div>
+    </div>
+
+    <!-- (REMAINING) Product Detail Page (Hidden) --><div id="page-product-detail" class="hidden container mx-auto px-4 py-8 md:py-12">
+        <div class="mb-6">
+            <button onclick="showPage('main', true)" class="text-gray-600 hover:text-black font-medium">&larr; Back to Shop</button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+            <!-- Product Image --><div>
+                <img id="detail-image" src="https://placehold.co/600x600/e2e8f0/64748b?text=Product" alt="Product Image" class="w-full h-auto aspect-square object-cover rounded-xl shadow-sm">
+            </div>
+            
+            <!-- Product Info --><div class="flex flex-col justify-center">
+                <h1 id="detail-name" class="text-3xl md:text-4xl font-bold text-gray-800">Product Name</h1>
+                <p id="detail-price" class="text-2xl text-gray-700 mt-2">0 THB</p>
+                
+                <div class="border-t my-6"></div>
+                
+                <h2 class="text-lg font-semibold text-gray-800">Description</h2>
+                <p id="detail-description" class="text-gray-600 mt-2 leading-relaxed">Product description goes here. It provides details about the materials, origin, and features of the item.</p>
+                
+                <div class="mt-8">
+                    <button id="detail-add-to-cart-btn" class="w-full bg-black text-white font-semibold py-3 px-8 rounded-lg hover:bg-gray-800 transition-colors duration-300">
+                        Add to Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- (NEW) Social Link Section (Required) --><section id="social-links" class="bg-white border-t border-gray-200 py-12">
+        <div class="container mx-auto px-4 text-center">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6">เชื่อมต่อกับเรา</h3>
+            <p class="text-gray-600 mb-8">ติดตามข่าวสารและโปรโมชั่นล่าสุดได้ที่ PIM</p>
+            <div class="flex justify-center space-x-6">
+                <!-- Facebook --><a href="https://www.pim.ac.th" target="_blank" class="text-gray-500 hover:text-black transition-colors" aria-label="Facebook">
+                    <svg class="h-8 w-8" fill="currentColor" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" />
+                    </svg>
+                </a>
+                <!-- Instagram --><a href="https://www.pim.ac.th" target="_blank" class="text-gray-500 hover:text-black transition-colors" aria-label="Instagram">
+                    <svg class="h-8 w-8" fill="currentColor" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" d="M12.315 2.315a4.87 4.87 0 014.87 4.87V16.81a4.87 4.87 0 01-4.87 4.87h-.63a4.87 4.87 0 01-4.87-4.87V7.185a4.87 4.87 0 014.87-4.87h.63zm0 2.17h-.63a2.7 2.7 0 00-2.7 2.7V16.81a2.7 2.7 0 002.7 2.7h.63a2.7 2.7 0 002.7-2.7V7.185a2.7 2.7 0 00-2.7-2.7zM12 16a4 4 0 100-8 4 4 0 000 8zm0-2.17a1.83 1.83 0 110-3.66 1.83 1.83 0 010 3.66zM16.81 7.185a1.18 1.18 0 11-2.36 0 1.18 1.18 0 012.36 0z" clip-rule="evenodd" />
+                    </svg>
+                </a>
+                <!-- Twitter --><a href="https://www.pim.ac.th" target="_blank" class="text-gray-500 hover:text-black transition-colors" aria-label="Twitter">
+                    <svg class="h-8 w-8" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M22.46 6c-.77.35-1.6.58-2.46.67.9-.53 1.58-1.37 1.9-2.36-.84.5-1.78.86-2.79 1.07A4.6 4.6 0 0016.5 4c-2.35 0-4.26 1.91-4.26 4.26 0 .34.04.67.11 1-3.54-.18-6.68-1.88-8.79-4.46-.37.63-.58 1.37-.58 2.15 0 1.48.75 2.79 1.9 3.55-.7-.02-1.36-.21-1.93-.53v.05c0 2.07 1.47 3.8 3.42 4.19-.36.1-.73.15-1.12.15-.27 0-.54-.03-.8-.08.54 1.7 2.1 2.94 3.96 2.97-1.46 1.15-3.3 1.83-5.3 1.83-.34 0-.68-.02-1.01-.06 1.9 1.22 4.16 1.93 6.58 1.93 7.9 0 12.21-6.56 12.21-12.21 0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z" />
+                    </svg>
+                </a>
+                <!-- LinkedIn --><a href="https://www.pim.ac.th" target="_blank" class="text-gray-500 hover:text-black transition-colors" aria-label="LinkedIn">
+                    <svg class="h-8 w-8" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zM8.1 18.2H5.1V9.5h3v8.7zM6.6 8.2c-1 0-1.8-.8-1.8-1.8s.8-1.8 1.8-1.8 1.8.8 1.8 1.8-.8 1.8-1.8 1.8zM18.9 18.2h-3V14c0-1.1-.4-1.8-1.4-1.8-.7 0-1.2.5-1.4 1-.1.3-.1.8-.1 1.2v3.8h-3V9.5h3v1.3c.4-.6 1.1-1.5 2.7-1.5 2 0 3.5 1.3 3.5 4.1v4.8z" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- (Original) Footer --><footer class="bg-white border-t border-gray-200">
+        <div class="container mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <a href="#" class="brand-text">MINIM.</a>
+                    <p class="mt-2 text-gray-500 text-sm">Quality goods for a mindful life.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-800">Shop</h3>
+                    <ul class="mt-4 space-y-2 text-sm">
+                        <li><a href="#" class="text-gray-500 hover:text-black">All Products</a></li>
+                        <li><a href="#" class="text-gray-500 hover:text-black">New Arrivals</a></li>
+                        <li><a href="#" class="text-gray-500 hover:text-black">Best Sellers</a></li>
+                    </ul>
+                </div>
+                 <div>
+                    <h3 class="font-semibold text-gray-800">Support</h3>
+                    <ul class="mt-4 space-y-2 text-sm">
+                        <li><a href="#" class="text-gray-500 hover:text-black">FAQ</a></li>
+                        <li><a href="#" class="text-gray-500 hover:text-black">Contact Us</a></li>
+                        <li><a href="#" class="text-gray-500 hover:text-black">Shipping & Returns</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-gray-800">Follow Us</h3>
+                    <p class="mt-4 text-gray-500 text-sm">Stay up to date with our latest news and collections.</p>
+                </div>
+            </div>
+            <div class="mt-8 border-t border-gray-200 pt-4 text-center text-sm text-gray-500">
+                &copy; 2025 MINIM. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- (Original) Cart Sidebar --><div id="cart-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden" onclick="toggleCart()"></div>
+    <div id="cart-sidebar" class="fixed top-0 right-0 h-full w-full max-w-sm bg-white z-50 transform translate-x-full shadow-lg">
+        <div class="flex flex-col h-full">
+            <!-- Cart Header --><div class="flex justify-between items-center p-4 border-b">
+                <h2 class="text-xl font-semibold">Your Cart</h2>
+                <button onclick="toggleCart()" class="text-gray-500 hover:text-gray-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Cart Items --><div id="cart-items" class="flex-grow p-4 overflow-y-auto">
+                <!-- Cart items will be injected here --><p id="empty-cart-message" class="text-gray-500">Your cart is empty.</p>
+            </div>
+            
+            <!-- Cart Footer --><div class="p-4 border-t">
+                <div class="flex justify-between items-center font-semibold text-lg">
+                    <span>Subtotal</span>
+                    <span id="cart-subtotal">0 THB</span>
+                </div>
+                <button id="checkout-btn" class="w-full mt-4 bg-black text-white font-semibold py-3 rounded-lg hover:bg-gray-800 transition-colors duration-300">
+                    Proceed to Checkout
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Mock Data (Original) ---
+        const mockProducts = [
+            { id: 1, name: 'Ceramic Pour-Over', price: 1200, imageUrl: 'https://images.unsplash.com/photo-1545665225-b23b99e4d45e?q=80&w=800&auto=format&fit=crop', description: 'A beautifully crafted ceramic pour-over coffee maker. Perfect for a mindful morning ritual. Includes a wooden base.' },
+            { id: 2, name: 'Hololive card - Fubuki signature', price: 2500, imageUrl: 'https://tcgrepublic.com/media/binary/000/625/074/625074.png.l2_thumbnail.jpg', description: 'Rare signed collectible card featuring Shirakami Fubuki from Hololive. A must-have for any fan.' },
+            { id: 3, name: 'Hololive Card - Fubuki', price: 890, imageUrl: 'https://image.makewebeasy.net/makeweb/m_1200x600/5B7FsBMpj/EC19/Fubuki.png?v=202405291424', description: 'Standard collectible card featuring Shirakami Fubuki. High-quality print and glossy finish.' },
+            { id: 4, name: 'Minimalist Wall Clock', price: 1800, imageUrl: 'https://images.unsplash.com/photo-1533090481720-856c6e3c1fdc?q=80&w=800&auto=format&fit=crop', description: 'A silent, non-ticking wall clock with a clean and minimal design. Made from natural birch wood.' },
+            { id: 5, name: 'Cold War Concept Art', price: 650, imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQy2LRsf0maJb-zQHF3TTYhWx6EZPRgopSkBQ&s', description: 'A framed print of concept art depicting a scene from the Cold War era. High-quality giclée print.' },
+            { id: 6, name: 'Gundam Model Kit', price: 950, imageUrl: 'https://i.ebayimg.com/images/g/pqcAAOSwg4ZiEEoR/s-l1200.jpg', description: '1/144 scale High Grade (HG) model kit of a popular Gundam. No glue or paint required.' },
+            { id: 7, name: 'Spaceship Blueprint', price: 720, imageUrl: 'https://i.redd.it/2mhrqnmb7s941.jpg', description: 'Detailed blueprint poster of a fictional spaceship. Perfect for sci-fi enthusiasts and designers.' },
+            { id: 8, name: 'Anime Character Figure', price: 450, imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOJdigWKFb_v_H1aWbnrtdpK3DN2t-SEY_-A&s', description: 'A cute chibi-style figure of a popular anime character. Comes with a display base.' },
+        ];
+        
+        // --- State (Original) ---
+        let cart = [];
+        let recentlyViewed = []; 
+
+        // --- DOM Elements (Original) ---
+        const cartSidebar = document.getElementById('cart-sidebar');
+        const cartOverlay = document.getElementById('cart-overlay');
+        const productGrid = document.getElementById('product-grid');
+        const cartCountEl = document.getElementById('cart-count');
+        const cartItemsEl = document.getElementById('cart-items');
+        const emptyCartMessage = document.getElementById('empty-cart-message');
+        const cartSubtotalEl = document.getElementById('cart-subtotal');
+        const checkoutBtn = document.getElementById('checkout-btn');
+        const mobileMenu = document.getElementById('mobile-menu'); // (NEW)
+        const hamburgerIcon = document.getElementById('hamburger-icon'); // (NEW)
+        const closeIcon = document.getElementById('close-icon'); // (NEW)
+
+
+        // --- Functions ---
+        
+        // (NEW) Custom Smooth Scroll to Top Function
+        function smoothScrollToTop(duration = 1000) {
+            const targetPosition = 0; // Scroll to the top
+            const startPosition = window.pageYOffset;
+            const distance = targetPosition - startPosition;
+            if (distance === 0) return; // Already at top
+            
+            let startTime = null;
+
+            function animation(currentTime) {
+                if (startTime === null) startTime = currentTime;
+                const timeElapsed = currentTime - startTime;
+                
+                // Easing function (ease-in-out)
+                const run = Math.min(timeElapsed / duration, 1);
+                const ease = 0.5 * (1 - Math.cos(Math.PI * run));
+                
+                window.scrollTo(0, startPosition + distance * ease);
+                
+                if (timeElapsed < duration) {
+                    requestAnimationFrame(animation);
+                }
+            }
+
+            requestAnimationFrame(animation);
+        }
+
+        // (Original) Custom Smooth Scroll Function
+        function smoothScrollTo(elementId, duration = 1000) {
+            const target = document.getElementById(elementId);
+            if (!target) return;
+
+            const targetPosition = target.getBoundingClientRect().top + window.pageYOffset;
+            const startPosition = window.pageYOffset;
+            const distance = targetPosition - startPosition;
+            let startTime = null;
+
+            function animation(currentTime) {
+                if (startTime === null) startTime = currentTime;
+                const timeElapsed = currentTime - startTime;
+                
+                // Easing function (ease-in-out)
+                const run = Math.min(timeElapsed / duration, 1);
+                const ease = 0.5 * (1 - Math.cos(Math.PI * run));
+                
+                window.scrollTo(0, startPosition + distance * ease);
+                
+                if (timeElapsed < duration) {
+                    requestAnimationFrame(animation);
+                }
+            }
+
+            requestAnimationFrame(animation); // <-- FIX: Removed erroneous 'function' keyword
+        }
+
+        // (NEW) Toggle Mobile Menu
+        function toggleMobileMenu() {
+            const isOpen = mobileMenu.classList.contains('max-h-screen');
+            
+            if (isOpen) {
+                mobileMenu.classList.remove('max-h-screen');
+                mobileMenu.classList.add('max-h-0');
+                hamburgerIcon.classList.remove('hidden');
+                closeIcon.classList.add('hidden');
+            } else {
+                mobileMenu.classList.remove('max-h-0');
+                mobileMenu.classList.add('max-h-screen');
+                hamburgerIcon.classList.add('hidden');
+                closeIcon.classList.remove('hidden');
+            }
+        }
+
+        // (UPDATED) showPage function (Simplified for Single Page)
+        function showPage(pageId, scrollToTop = true) {
+            // (NEW) Close mobile menu if it's open
+            if (mobileMenu.classList.contains('max-h-screen')) {
+                toggleMobileMenu();
+            }
+
+            // Hide all "modal" pages
+            document.getElementById('page-main').classList.add('hidden');
+            document.getElementById('page-checkout').classList.add('hidden');
+            document.getElementById('page-history').classList.add('hidden'); 
+            document.getElementById('page-product-detail').classList.add('hidden'); 
+            document.getElementById('page-search').classList.add('hidden');
+            // Removed: page-team, page-new-arrivals, page-about
+
+            // Show the requested page
+            const pageToShow = document.getElementById(`page-${pageId}`);
+            if (pageToShow) {
+                pageToShow.classList.remove('hidden');
+                
+                // Only scroll to top if requested (e.g., loading checkout, search, history)
+                if (scrollToTop) {
+                    smoothScrollToTop(1000); 
+                }
+
+                // Auto-focus search input when search page is shown
+                if (pageId === 'search') {
+                    document.getElementById('search-input').focus();
+                }
+            }
+        }
+
+        // (Original) Refactored Helper Function
+        function createProductCardHTML(product) {
+            return `
+                <div class="product-card">
+                    <div class="aspect-square bg-gray-100 cursor-pointer" onclick="showProductDetail(${product.id})">
+                        <img src="${product.imageUrl}" alt="${product.name}" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/600x600/e2e8f0/64748b?text=Image+Error';">
+                    </div>
+                    <div class="p-4 flex flex-col">
+                        <h3 class="font-medium text-gray-800 flex-grow hover:text-black cursor-pointer" onclick="showProductDetail(${product.id})">${product.name}</h3>
+                        <p class="mt-1 text-gray-600">${product.price.toLocaleString()} THB</p>
+                        <button onclick="addToCart(${product.id})" class="w-full mt-4 bg-gray-100 text-gray-800 font-semibold py-2 rounded-lg hover:bg-gray-200 transition-colors duration-200 text-sm">
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // (Original) renderProducts
+        function renderProducts() {
+            productGrid.innerHTML = mockProducts.map(createProductCardHTML).join('');
+        }
+
+        // (Original) renderNewArrivals
+        function renderNewArrivals() {
+            const newArrivalsGrid = document.getElementById('new-arrivals-product-grid');
+            if (!newArrivalsGrid) return;
+            
+            const newProducts = mockProducts.slice(-4).reverse(); 
+            newArrivalsGrid.innerHTML = newProducts.map(createProductCardHTML).join('');
+        }
+
+        // (Original) performSearch
+        function performSearch() {
+            const searchInput = document.getElementById('search-input');
+            const resultsGrid = document.getElementById('search-results-grid');
+            const noResultsMessage = document.getElementById('no-search-results');
+            
+            const searchValue = searchInput.value.trim().toLowerCase();
+            
+            if (searchValue === '') {
+                resultsGrid.innerHTML = '';
+                noResultsMessage.classList.add('hidden');
+                return;
+            }
+
+            const results = mockProducts.filter(product => 
+                product.name.toLowerCase().includes(searchValue)
+            );
+
+            if (results.length > 0) {
+                resultsGrid.innerHTML = results.map(createProductCardHTML).join('');
+                noResultsMessage.classList.add('hidden');
+            } else {
+                resultsGrid.innerHTML = '';
+                noResultsMessage.classList.remove('hidden');
+            }
+        }
+
+        // (Original) addToCart
+        function addToCart(productId) {
+            const product = mockProducts.find(p => p.id === productId);
+            const existingItem = cart.find(item => item.id === productId);
+
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+            
+            updateCart();
+            toggleCart(true); // Open cart when item is added
+        }
+        
+        // (Original) updateRecentlyViewed
+        function updateRecentlyViewed(productId) {
+            recentlyViewed = recentlyViewed.filter(id => id !== productId);
+            recentlyViewed.unshift(productId);
+            recentlyViewed = recentlyViewed.slice(0, 8);
+            renderRecentlyViewed();
+        }
+
+        // (Original) showProductDetail
+        function showProductDetail(productId) {
+            const product = mockProducts.find(p => p.id === productId);
+            if (!product) return;
+
+            updateRecentlyViewed(productId);
+
+            document.getElementById('detail-image').src = product.imageUrl;
+            document.getElementById('detail-image').alt = product.name;
+            document.getElementById('detail-name').textContent = product.name;
+            document.getElementById('detail-price').textContent = `${product.price.toLocaleString()} THB`;
+            document.getElementById('detail-description').textContent = product.description;
+            
+            const detailBtn = document.getElementById('detail-add-to-cart-btn');
+            detailBtn.onclick = () => addToCart(product.id);
+
+            showPage('product-detail', true); // Was: showPage('product-detail')
+        }
+
+        // (Original) renderRecentlyViewed
+        function renderRecentlyViewed() { 
+            const container = document.getElementById('history-items-container');
+            const noHistoryMsg = document.getElementById('no-history-message');
+            
+            if (recentlyViewed.length === 0) {
+                noHistoryMsg.classList.remove('hidden');
+                container.innerHTML = '';
+                return;
+            }
+
+            noHistoryMsg.classList.add('hidden');
+            container.innerHTML = recentlyViewed.map(id => {
+                const product = mockProducts.find(p => p.id === id);
+                return product ? createProductCardHTML(product) : '';
+            }).join('');
+        }
+
+        // (Original) updateCart
+        function updateCart() {
+            renderCartItems();
+            updateCartCount();
+            updateCartSubtotal();
+            emptyCartMessage.classList.toggle('hidden', cart.length > 0);
+        }
+
+        // (Original) renderCartItems
+        function renderCartItems() {
+            cartItemsEl.innerHTML = '';
+            cart.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'flex items-center space-x-4 py-2 cart-item-enter';
+                itemEl.innerHTML = `
+                    <img src="${item.imageUrl}" alt="${item.name}" class="w-16 h-16 object-cover rounded-md">
+                    <div class="flex-grow">
+                        <p class="font-medium">${item.name}</p>
+                        <p class="text-sm text-gray-500">${item.price.toLocaleString()} THB</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="font-semibold">${item.quantity}</p>
+                    </div>
+                `;
+                cartItemsEl.appendChild(itemEl);
+                requestAnimationFrame(() => {
+                    itemEl.classList.add('cart-item-enter-active');
+                });
+            });
+        }
+
+        // (Original) updateCartCount
+        function updateCartCount() {
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartCountEl.textContent = totalItems;
+            cartCountEl.classList.toggle('scale-0', totalItems === 0);
+        }
+        
+        // (Original) updateCartSubtotal
+        function updateCartSubtotal() {
+            const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+            cartSubtotalEl.textContent = `${subtotal.toLocaleString()} THB`;
+        }
+        
+        // (Original) renderCheckoutPage
+        function renderCheckoutPage() {
+            const summaryItemsEl = document.getElementById('checkout-summary-items');
+            const subtotalEl = document.getElementById('checkout-subtotal');
+            const totalEl = document.getElementById('checkout-total');
+
+            summaryItemsEl.innerHTML = '';
+            let subtotal = 0;
+
+            cart.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'flex justify-between items-center';
+                itemEl.innerHTML = `
+                    <div class="flex items-center space-x-3 text-sm">
+                        <img src="${item.imageUrl}" class="w-12 h-12 rounded-md object-cover">
+                        <div>
+                            <p class="font-medium text-gray-800">${item.name}</p>
+                            <p class="text-gray-500">Qty: ${item.quantity}</p>
+                        </div>
+                    </div>
+                    <p class="font-medium text-sm">${(item.price * item.quantity).toLocaleString()} THB</p>
+                `;
+                summaryItemsEl.appendChild(itemEl);
+                subtotal += item.price * item.quantity;
+            });
+
+            subtotalEl.textContent = `${subtotal.toLocaleString()} THB`;
+            totalEl.textContent = `${subtotal.toLocaleString()} THB`; // Assuming free shipping
+        }
+
+        // (Original) toggleCart
+        function toggleCart(forceOpen = null) {
+            const isOpen = cartSidebar.classList.contains('translate-x-0');
+            if (forceOpen === true || !isOpen) {
+                cartSidebar.classList.remove('translate-x-full');
+                cartSidebar.classList.add('translate-x-0');
+                cartOverlay.classList.remove('hidden');
+                cartOverlay.classList.add('opacity-100');
+            } else if (forceOpen === false || isOpen) {
+                cartSidebar.classList.add('translate-x-full');
+                cartSidebar.classList.remove('translate-x-0');
+                cartOverlay.classList.remove('opacity-100');
+                setTimeout(() => cartOverlay.classList.add('hidden'), 300);
+            }
+        }
+
+
+        // (Original) Initial Load & Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set initial page to main
+            showPage('main', false); // Show main page by default without scrolling
+
+            renderProducts();
+            renderNewArrivals();
+            renderRecentlyViewed(); 
+
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', performSearch);
+            }
+            
+            checkoutBtn.addEventListener('click', () => {
+                if (cart.length === 0) {
+                    // NOTE: Replaced alert() with a console log for a better experience, 
+                    // as alert() can be disruptive and is disallowed in some contexts.
+                    // A proper modal would be the next step.
+                    console.warn('Cart is empty. Please add items before proceeding to checkout.');
+                    // alert('Your cart is empty. Please add items before proceeding to checkout.'); 
+                    return;
+                }
+                toggleCart(false); // Close cart sidebar
+                renderCheckoutPage();
+                showPage('checkout', true); // Was: showPage('checkout')
+            });
+        });
+    </script>
+
+</body>
+</html>
